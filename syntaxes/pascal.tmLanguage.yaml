@@ -40,6 +40,7 @@ patterns:
 repository:
     comment:
         patterns:
+            -
                 name: comment.block.pascal
                 begin: '\{'
                 end: '\}'
