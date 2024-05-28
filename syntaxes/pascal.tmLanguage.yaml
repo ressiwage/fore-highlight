@@ -1,5 +1,5 @@
 $schema: 'https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json'
-name: Pascal
+name: Fore
 patterns:
     -
         include: '#comment'
@@ -481,4 +481,4 @@ repository:
             -
                 name: constant.character.escape.pascal
                 match: "''"
-scopeName: source.pascal
+scopeName: source.fore

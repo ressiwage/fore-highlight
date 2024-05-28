@@ -19,7 +19,7 @@
     "contributes": {
         "languages": [
             {
-                "id": "pascal",
+                "id": "fore",
                 "aliases": [
                     "Fore"
             
@@ -33,8 +33,8 @@
         ],
         "grammars": [
             {
-                "language": "pascal",
-                "scopeName": "source.pascal",
+                "language": "fore",
+                "scopeName": "source.fore",
                 "path": "./syntaxes/pascal.tmLanguage.json"
             }
         ]
