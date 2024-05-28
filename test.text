@@ -6,6 +6,75 @@ Public Class GlobalVariables: Object
 	Public fr, lr, fc, lc, loginCol: Integer; //first row, last row, first column, last column
 End Class GlobalVariables;
 
+//TODO вынести в класс: работа с таблицей
+///<summary>стайлинг таблицы: байндинги, границы, шрифт</summary>
+Public Sub StyleTable(Report: IPrxReport; Var GV: GlobalVariables; var tabSheet: ITabSheet);
+Var
+	
+	firstValueRow, lastValueRow, firstValueCol, lastValueCol, loginColumn, i, j: Integer;
+
+	BM:IBindingManager;
+	ComboBoxBinding:IBindingComboBox;
+	MB:IMetabase;
+	Dict:IRdsDictionary;
+	DictInst:IRdsDictionaryInstance;
+	Elements:IRdsDictionaryElements;
+	err: Boolean;
+	Element: IRdsDictionaryElement;
+	contextCols, availableContValues: IArrayList;
+	
+Begin	
+	FindFirstLastRow(tabSheet, firstValueRow, lastValueRow, firstValueCol, lastValueCol); 
+	contextCols:=FindColumns(tabSheet, "#contextcol");
+	
+	
+	//комбобокс контекста
+	BM := New BindingManager.Create;
+	ComboBoxBinding := BM.CreateByUi("ComboBox") As IBindingComboBox;
+	ComboBoxBinding.Items := "";
+	
+	//значения комбобокса
+	MB := MetabaseClass.Active;
+	Dict := FindInRepo(C_DICT_CONTEXT_ID,MB,err).Bind As IRdsDictionary;
+	DictInst := Dict.Open(Null);
+	Elements := DictInst.Elements;
+	//availableContValues:=ArrayList.Create;
+	For i := 0 To Elements.Count - 1 Do
+		Element := Elements.Item(i);
+		//availableContValues.Add(Element.Name);
+		If i<>Elements.Count-1 Then
+			ComboBoxBinding.Items := ComboBoxBinding.Items+Element.Name+";";
+		Else
+			ComboBoxBinding.Items := ComboBoxBinding.Items+Element.Name;
+		End If;
+	End For;
+
+	ComboBoxBinding.ListMode := False;
+	ComboBoxBinding.Separators := ";";
+	
+	//задание комбобокса
+	tabSheet.Cells(firstValueRow, contextCols.Item(0), tabSheet.Table.Bottom, contextCols.Item(0)).Style.Binding := ComboBoxBinding.AsString; //(6)
+	tabSheet.Cells(firstValueRow, contextCols.Item(0), tabSheet.Table.Bottom, contextCols.Item(0)).Style.ActivationEditorMode := TabActivationEditorMode.OnFocus; 
+	
+	tabSheet.Cells(firstValueRow, contextCols.Item(0)+1, tabSheet.Table.Bottom, contextCols.Item(0)+1).Style.FormatType:= CustomFormatType.Text; //(6)
+	tabSheet.Cells(firstValueRow, contextCols.Item(0)+1, tabSheet.Table.Bottom, contextCols.Item(0)+1).Style;
+	
+	
+	MakeBorder(tabSheet.Cells(0, 0, tabSheet.MaxNotEmptyRow+500, lastValueCol+50).Style, TabBorder.Outline, "White", TabBorderStyle.Continuous); //(8)
+	MakeBorder(tabSheet.Cells(0, 0, tabSheet.MaxNotEmptyRow+500, lastValueCol+50).Style, TabBorder.InsideHorizontal, "White", TabBorderStyle.Continuous);
+	MakeBorder(tabSheet.Cells(0, 0, tabSheet.MaxNotEmptyRow+500, lastValueCol+50).Style, TabBorder.InsideVertical, "White", TabBorderStyle.Continuous);
+	
+	MakeBorder(tabSheet.Cells(firstValueRow-1, firstValueCol, lastValueRow, lastValueCol).Style, TabBorder.Outline, "Black", TabBorderStyle.Continuous); //(8)
+	MakeBorder(tabSheet.Cells(firstValueRow-1, firstValueCol, lastValueRow, lastValueCol).Style, TabBorder.InsideHorizontal, "Black", TabBorderStyle.Continuous);
+	MakeBorder(tabSheet.Cells(firstValueRow-1, firstValueCol, lastValueRow, lastValueCol).Style, TabBorder.InsideVertical, "Black", TabBorderStyle.Continuous);
+	
+	tabSheet.Cells(firstValueRow, firstValueCol, lastValueRow, lastValueCol).Style.Font.Bold:=TriState.OffOption;
+	tabSheet.Cells(firstValueRow, firstValueCol, lastValueRow, lastValueCol).Style.Font.Size:=8.0;
+	tabSheet.Cells(firstValueRow, firstValueCol, lastValueRow, lastValueCol).Style.Font.Name:="Arial";
+	
+	
+End Sub StyleTable;
+
 Public Function FindInRepo(id:String; meta:IMetabase; Var error:Boolean):IMetabaseObjectDescriptor;
 Var
 	FInfo: IMetabaseObjectFindInfo;
@@ -181,75 +250,6 @@ Begin
 	Until False;
 	Return returnResult
 End Function FindColumns;
-
-//TODO вынести в класс: работа с таблицей
-///<summary>стайлинг таблицы: байндинги, границы, шрифт</summary>
-Public Sub StyleTable(Report: IPrxReport; Var GV: GlobalVariables; var tabSheet: ITabSheet);
-Var
-	
-	firstValueRow, lastValueRow, firstValueCol, lastValueCol, loginColumn, i, j: Integer;
-
-	BM:IBindingManager;
-	ComboBoxBinding:IBindingComboBox;
-	MB:IMetabase;
-	Dict:IRdsDictionary;
-	DictInst:IRdsDictionaryInstance;
-	Elements:IRdsDictionaryElements;
-	err: Boolean;
-	Element: IRdsDictionaryElement;
-	contextCols, availableContValues: IArrayList;
-	
-Begin	
-	FindFirstLastRow(tabSheet, firstValueRow, lastValueRow, firstValueCol, lastValueCol); 
-	contextCols:=FindColumns(tabSheet, "#contextcol");
-	
-	
-	//комбобокс контекста
-	BM := New BindingManager.Create;
-	ComboBoxBinding := BM.CreateByUi("ComboBox") As IBindingComboBox;
-	ComboBoxBinding.Items := "";
-	
-	//значения комбобокса
-	MB := MetabaseClass.Active;
-	Dict := FindInRepo(C_DICT_CONTEXT_ID,MB,err).Bind As IRdsDictionary;
-	DictInst := Dict.Open(Null);
-	Elements := DictInst.Elements;
-	//availableContValues:=ArrayList.Create;
-	For i := 0 To Elements.Count - 1 Do
-		Element := Elements.Item(i);
-		//availableContValues.Add(Element.Name);
-		If i<>Elements.Count-1 Then
-			ComboBoxBinding.Items := ComboBoxBinding.Items+Element.Name+";";
-		Else
-			ComboBoxBinding.Items := ComboBoxBinding.Items+Element.Name;
-		End If;
-	End For;
-
-	ComboBoxBinding.ListMode := False;
-	ComboBoxBinding.Separators := ";";
-	
-	//задание комбобокса
-	tabSheet.Cells(firstValueRow, contextCols.Item(0), tabSheet.Table.Bottom, contextCols.Item(0)).Style.Binding := ComboBoxBinding.AsString; //(6)
-	tabSheet.Cells(firstValueRow, contextCols.Item(0), tabSheet.Table.Bottom, contextCols.Item(0)).Style.ActivationEditorMode := TabActivationEditorMode.OnFocus; 
-	
-	tabSheet.Cells(firstValueRow, contextCols.Item(0)+1, tabSheet.Table.Bottom, contextCols.Item(0)+1).Style.FormatType:= CustomFormatType.Text; //(6)
-	tabSheet.Cells(firstValueRow, contextCols.Item(0)+1, tabSheet.Table.Bottom, contextCols.Item(0)+1).Style;
-	
-	
-	MakeBorder(tabSheet.Cells(0, 0, tabSheet.MaxNotEmptyRow+500, lastValueCol+50).Style, TabBorder.Outline, "White", TabBorderStyle.Continuous); //(8)
-	MakeBorder(tabSheet.Cells(0, 0, tabSheet.MaxNotEmptyRow+500, lastValueCol+50).Style, TabBorder.InsideHorizontal, "White", TabBorderStyle.Continuous);
-	MakeBorder(tabSheet.Cells(0, 0, tabSheet.MaxNotEmptyRow+500, lastValueCol+50).Style, TabBorder.InsideVertical, "White", TabBorderStyle.Continuous);
-	
-	MakeBorder(tabSheet.Cells(firstValueRow-1, firstValueCol, lastValueRow, lastValueCol).Style, TabBorder.Outline, "Black", TabBorderStyle.Continuous); //(8)
-	MakeBorder(tabSheet.Cells(firstValueRow-1, firstValueCol, lastValueRow, lastValueCol).Style, TabBorder.InsideHorizontal, "Black", TabBorderStyle.Continuous);
-	MakeBorder(tabSheet.Cells(firstValueRow-1, firstValueCol, lastValueRow, lastValueCol).Style, TabBorder.InsideVertical, "Black", TabBorderStyle.Continuous);
-	
-	tabSheet.Cells(firstValueRow, firstValueCol, lastValueRow, lastValueCol).Style.Font.Bold:=TriState.OffOption;
-	tabSheet.Cells(firstValueRow, firstValueCol, lastValueRow, lastValueCol).Style.Font.Size:=8.0;
-	tabSheet.Cells(firstValueRow, firstValueCol, lastValueRow, lastValueCol).Style.Font.Name:="Arial";
-	
-	
-End Sub StyleTable;
 
 //TODO вынести в класс: работа с таблицей
 ///<summary>обёртка для кэшированного обновления таблицы (кэш не используется)</summary>
