@@ -1,0 +1,414 @@
+Const
+	C_DICT_CONTEXT_ID="RD_ZZ_USER_CONTEXT";
+
+
+Public Class GlobalVariables: Object
+	Public fr, lr, fc, lc, loginCol: Integer; //first row, last row, first column, last column
+End Class GlobalVariables;
+
+Public Function FindInRepo(id:String; meta:IMetabase; Var error:Boolean):IMetabaseObjectDescriptor;
+Var
+	FInfo: IMetabaseObjectFindInfo;
+	MDescs: IMetabaseObjectDescriptors;
+Begin
+	FInfo :=  meta.CreateFindInfo;
+	FInfo.Text :=  id;
+	FInfo.Attribute :=  FindAttribute.Ident;
+	FInfo.ScanNestedNamespaces :=  True;
+	MDescs :=  meta.Find(FInfo); //если здесь ошибка значит не найлено
+	If MDescs.Count = 0 Then
+		error := True;
+		Return Null;
+	End If;
+	Return MDescs.Item(0);
+End Function FindInRepo;
+
+Public Sub ExecuteSql(sqlcom: String; dbName: String);
+Var
+	MB: IMetabase;
+	DB: IDatabaseInstance;
+	Com: IDalCommand;
+	_err: Boolean;
+Begin
+	MB := MetabaseClass.Active;
+	DB := FindInRepo(dbName, MB, _err).Open(Null) As IDatabaseInstance;
+	Com := DB.Connection.CreateCommand("");
+	Debug.WriteLine(sqlcom);
+	Com.SQL := sqlcom;
+	Com.Execute;
+	Com.Close;
+	
+End Sub ExecuteSql;
+
+Public Function AttachDocument:String;//Var 	//DOpen: FileOpenDialog;	//IFile: IFileInfo;
+Begin //DOpen := New FileOpenDialog.Create;  	//If Not DOpen.Execute Then  	//	IFile := New FileInfo.Attach(DOpen.FileName);  	//End If;	//Return DOpen.FileName
+	Return "";
+End Function AttachDocument;
+
+//TODO вынести в класс: работа с таблицей
+//служебная функция для применения границ
+Sub MakeBorder(style:ITabCellStyle; mode:TabBorder; color:String; borderStyle:TabBorderStyle);
+Begin
+	style.BorderStyle(mode):=borderStyle;
+	style.BorderWeight(mode):=TabBorderWeight.Thin;
+	style.BorderColor(mode) := GxColor.FromName(color);
+End Sub MakeBorder;
+
+//TODO вынести в класс: работа с таблицей
+///<summary>найти границы таблицы</summary>
+Public Sub FindFirstLastRow(tabSheet: ITabSheet; Var firstValueRow, lastValueRow, firstValueCol, lastValueCol: Integer);
+Var
+	Result: ITabSearchResult;
+	RowSearch: ITabRowSearch;
+	ColSearch: ITabColumnSearch;
+Begin
+	RowSearch := tabSheet.CreateRowSearch;
+	RowSearch.AddCondition(0, "#row", True, True);
+	Result:=RowSearch.Execute;
+	If Result <> Null Then
+		firstValueRow:=Result.CurrentRow;
+		lastValueRow:=Result.CurrentRow;
+	End If;	
+	Repeat
+		If Result.Next Then
+			lastValueRow:=Result.CurrentRow;
+		Else
+			Break
+		End If;
+	Until False;
+	
+	ColSearch := tabSheet.CreateColumnSearch;
+	ColSearch.AddCondition(0, "#namecol", True, True);
+	
+	Result:=ColSearch.Execute;
+	If Result <> Null Then
+		firstValueCol:=Result.CurrentColumn;
+		lastValueCol:=Result.CurrentColumn;
+	End If;	
+	
+	ColSearch := tabSheet.CreateColumnSearch;
+	ColSearch.AddCondition(0, "#contextvalue", True, True);
+	Result:=ColSearch.Execute;
+	If Result <> Null Then
+		lastValueCol:=Result.CurrentColumn;
+	End If;	
+	Repeat
+		If Result.Next Then
+			lastValueCol:=Result.CurrentColumn;
+		Else
+			Break
+		End If;
+	Until False;
+End Sub FindFirstLastRow;
+
+//TODO вынести в класс: работа с таблицей
+///<summary>поиск последней строки таблицы</summary>
+Public Sub FindLastRow(tabSheet: ITabSheet; Var lastValueRow: Integer);
+Var
+	Result: ITabSearchResult;
+	RowSearch: ITabRowSearch;
+Begin
+	RowSearch := tabSheet.CreateRowSearch;
+	RowSearch.AddCondition(0, "#row", True, True);
+	Result:=RowSearch.Execute;
+	If Result <> Null Then
+		lastValueRow:=Result.CurrentRow;
+	End If;	
+	Repeat
+		If Result.Next Then
+			lastValueRow:=Result.CurrentRow;
+		Else
+			Break
+		End If;
+	Until False;
+End Sub FindLastRow;
+
+//TODO вынести в класс: работа с таблицей
+///<summary>поиск левой и правой границ таблицы</summary>
+Public Sub FindFirstLastCol(tabSheet: ITabSheet; Var firstValueCol, lastValueCol: Integer);
+Var
+	Result: ITabSearchResult;
+	RowSearch: ITabRowSearch;
+	ColSearch: ITabColumnSearch;
+Begin
+	ColSearch := tabSheet.CreateColumnSearch;
+	ColSearch.AddCondition(0, "#namecol", True, True);
+	
+	Result:=ColSearch.Execute;
+	If Result <> Null Then
+		firstValueCol:=Result.CurrentColumn;
+		lastValueCol:=Result.CurrentColumn;
+	End If;	
+	
+	ColSearch := tabSheet.CreateColumnSearch;
+	ColSearch.AddCondition(0, "#contextvalue", True, True);
+	Result:=ColSearch.Execute;
+	If Result <> Null Then
+		lastValueCol:=Result.CurrentColumn;
+	End If;	
+	Repeat
+		If Result.Next Then
+			lastValueCol:=Result.CurrentColumn;
+		Else
+			Break
+		End If;
+	Until False;
+End Sub FindFirstLastCol;
+
+//TODO вынести в класс: работа с таблицей
+///<summary>найти все индексы колонок с определённым значением в первой строке</summary>
+Public Function FindColumns(tabSheet: ITabSheet; colName: String): IArrayList;
+Var
+	Result: ITabSearchResult;
+	RowSearch: ITabRowSearch;
+	ColSearch: ITabColumnSearch;
+	returnResult: IArrayList; 
+Begin
+	returnResult:=New ArrayList.Create;
+	ColSearch := tabSheet.CreateColumnSearch;
+	ColSearch.AddCondition(0, colName, True, True);
+	Result:=ColSearch.Execute;
+	If Result <> Null Then
+		returnResult.Add(Result.CurrentColumn);	
+		
+	End If;	
+	Repeat
+		If Result.Next Then
+			returnResult.Add(Result.CurrentColumn);
+		Else
+			Break
+		End If;
+	Until False;
+	Return returnResult
+End Function FindColumns;
+
+//TODO вынести в класс: работа с таблицей
+///<summary>стайлинг таблицы: байндинги, границы, шрифт</summary>
+Public Sub StyleTable(Report: IPrxReport; Var GV: GlobalVariables; var tabSheet: ITabSheet);
+Var
+	
+	firstValueRow, lastValueRow, firstValueCol, lastValueCol, loginColumn, i, j: Integer;
+
+	BM:IBindingManager;
+	ComboBoxBinding:IBindingComboBox;
+	MB:IMetabase;
+	Dict:IRdsDictionary;
+	DictInst:IRdsDictionaryInstance;
+	Elements:IRdsDictionaryElements;
+	err: Boolean;
+	Element: IRdsDictionaryElement;
+	contextCols, availableContValues: IArrayList;
+	
+Begin	
+	FindFirstLastRow(tabSheet, firstValueRow, lastValueRow, firstValueCol, lastValueCol); 
+	contextCols:=FindColumns(tabSheet, "#contextcol");
+	
+	
+	//комбобокс контекста
+	BM := New BindingManager.Create;
+	ComboBoxBinding := BM.CreateByUi("ComboBox") As IBindingComboBox;
+	ComboBoxBinding.Items := "";
+	
+	//значения комбобокса
+	MB := MetabaseClass.Active;
+	Dict := FindInRepo(C_DICT_CONTEXT_ID,MB,err).Bind As IRdsDictionary;
+	DictInst := Dict.Open(Null);
+	Elements := DictInst.Elements;
+	//availableContValues:=ArrayList.Create;
+	For i := 0 To Elements.Count - 1 Do
+		Element := Elements.Item(i);
+		//availableContValues.Add(Element.Name);
+		If i<>Elements.Count-1 Then
+			ComboBoxBinding.Items := ComboBoxBinding.Items+Element.Name+";";
+		Else
+			ComboBoxBinding.Items := ComboBoxBinding.Items+Element.Name;
+		End If;
+	End For;
+
+	ComboBoxBinding.ListMode := False;
+	ComboBoxBinding.Separators := ";";
+	
+	//задание комбобокса
+	tabSheet.Cells(firstValueRow, contextCols.Item(0), tabSheet.Table.Bottom, contextCols.Item(0)).Style.Binding := ComboBoxBinding.AsString; //(6)
+	tabSheet.Cells(firstValueRow, contextCols.Item(0), tabSheet.Table.Bottom, contextCols.Item(0)).Style.ActivationEditorMode := TabActivationEditorMode.OnFocus; 
+	
+	tabSheet.Cells(firstValueRow, contextCols.Item(0)+1, tabSheet.Table.Bottom, contextCols.Item(0)+1).Style.FormatType:= CustomFormatType.Text; //(6)
+	tabSheet.Cells(firstValueRow, contextCols.Item(0)+1, tabSheet.Table.Bottom, contextCols.Item(0)+1).Style;
+	
+	
+	MakeBorder(tabSheet.Cells(0, 0, tabSheet.MaxNotEmptyRow+500, lastValueCol+50).Style, TabBorder.Outline, "White", TabBorderStyle.Continuous); //(8)
+	MakeBorder(tabSheet.Cells(0, 0, tabSheet.MaxNotEmptyRow+500, lastValueCol+50).Style, TabBorder.InsideHorizontal, "White", TabBorderStyle.Continuous);
+	MakeBorder(tabSheet.Cells(0, 0, tabSheet.MaxNotEmptyRow+500, lastValueCol+50).Style, TabBorder.InsideVertical, "White", TabBorderStyle.Continuous);
+	
+	MakeBorder(tabSheet.Cells(firstValueRow-1, firstValueCol, lastValueRow, lastValueCol).Style, TabBorder.Outline, "Black", TabBorderStyle.Continuous); //(8)
+	MakeBorder(tabSheet.Cells(firstValueRow-1, firstValueCol, lastValueRow, lastValueCol).Style, TabBorder.InsideHorizontal, "Black", TabBorderStyle.Continuous);
+	MakeBorder(tabSheet.Cells(firstValueRow-1, firstValueCol, lastValueRow, lastValueCol).Style, TabBorder.InsideVertical, "Black", TabBorderStyle.Continuous);
+	
+	tabSheet.Cells(firstValueRow, firstValueCol, lastValueRow, lastValueCol).Style.Font.Bold:=TriState.OffOption;
+	tabSheet.Cells(firstValueRow, firstValueCol, lastValueRow, lastValueCol).Style.Font.Size:=8.0;
+	tabSheet.Cells(firstValueRow, firstValueCol, lastValueRow, lastValueCol).Style.Font.Name:="Arial";
+	
+	
+End Sub StyleTable;
+
+//TODO вынести в класс: работа с таблицей
+///<summary>обёртка для кэшированного обновления таблицы (кэш не используется)</summary>
+Public Sub RefreshTable(Report: IPrxReport);
+Var
+	GVNull: GlobalVariables;
+Begin
+	GVNull:=New GlobalVariables.Create;
+	RefreshTableCached(Report, GVNull);
+End Sub RefreshTable;
+
+//TODO вынести в класс: работа с таблицей
+///<summary>обновление таблицы. границы таблицы закэшированы. </summary>
+Public Sub RefreshTableCached(Report: IPrxReport; Var GV: GlobalVariables);
+Var
+	tabSheet: ITabSheet;
+	Result: ITabSearchResult;
+	RowSearch: ITabRowSearch;
+	firstValueRow, lastValueRow, firstValueCol, lastValueCol, i, j: Integer;
+	contextCols: IArrayList;
+	recordsInTables: IArrayList;
+	r: Array Of String;
+	BM: IBindingManager;
+	ComboBoxBinding: IBindingComboBox;
+	options: IPrxReportOptions;
+	MB: IMetabase;
+	err: Boolean;
+	Dict: IRdsDictionary;
+	DictInst: IRdsDictionaryInstance;
+	Elements: IRdsDictionaryElements;
+	Element: IRdsDictionaryElement;
+	loginColumn: Integer;
+Begin
+	Report.Options.ErrorCheckingOptions.NumberAsText:=False;
+	(Report.DataArea.Views.Item(0) As IEaxGrid).AllowSaveData:=False;
+	
+	tabSheet := (report.ActiveSheet As IPrxTable).TabSheet;
+	tabSheet.BeginUpdate;
+	TabSheet.Cells(0, 0, tabSheet.Table.Bottom, 0).Style.Locked:=Tristate.OffOption;
+	loginColumn:=FindColumns(tabSheet, "#logincol").Item(0);
+	CreateWebMethodInformation("Загрузка успешно завершена");
+	If (IsNull(GV)) Or (GV.lr=0) Then
+		GV:=new GlobalVariables.Create;
+		FindFirstLastRow(tabSheet, firstValueRow, lastValueRow, firstValueCol, lastValueCol); 
+		GV.fr:=firstValueRow;
+		GV.lr:=lastValueRow;
+		GV.fc:=firstValueCol;
+		GV.lc:=lastValueCol;
+	Else
+		//если уже были вычислены границы таблицы, то вычисляем только последнюю запись
+		If (tabSheet.Cell(GV.lr, 0).Value="#row") And (tabSheet.Cell(GV.lr+1, 0).Value="#row") And (tabSheet.Cell(GV.lr+2, 0).Value="") Then
+			GV.lr:=GV.lr+1;
+		Else
+			FindLastRow(tabSheet, GV.lr);
+		End If;
+		firstValueRow := GV.fr;
+		lastValueRow := GV.lr;
+		firstValueCol := GV.fc;
+		lastValueCol := GV.lc;
+	End If;
+	
+	
+	recordsInTables := New ArrayList.Create;
+	AddToListFromTable("T_A_SHEET_USERS", recordsInTables);	//(3)
+
+	
+	For i:=firstValueRow To firstValueRow+recordsInTables.Count-1 Do
+		tabSheet.Cell(i, 0).Value:="#row"; //(5)
+		r := (recordsInTables.Item(i-firstValueRow) As Array Of String);
+		tabSheet.Cell(i, firstValueCol).Value:=r[0]; //(7)
+		tabSheet.Cell(i, firstValueCol+1).Value:=r[1];
+		//tabSheet.Cell(i, firstValueCol+2).Value:=r[2];
+		tabSheet.Cell(i, firstValueCol+2).Value:=r[3];
+		tabSheet.Cell(i, firstValueCol+3).Value:=r[4];
+		tabSheet.Cell(i, firstValueCol+4).Value:=r[5];
+		
+		
+	End For;
+	
+	For i:=firstValueRow+recordsInTables.Count To tabSheet.Table.Bottom Do
+		If ( (IsNull(tabSheet.Cell(i, loginColumn).Value)) Or (tabSheet.Cell(i, loginColumn).Value="") ) And (i<>firstValueRow) Then
+			Break;
+		Else
+			tabSheet.Cell(i, 0).Value:="#row";
+		End If;
+	End For;
+	While tabSheet.Cell(i, 0).Value="#row" Do
+		tabSheet.Cell(i, 0).Value:="";
+		i:=i+1;
+	End While;
+	TabSheet.Cells(0, 0, tabSheet.Table.Bottom, 0).Style.Locked:=Tristate.OnOption;
+	TabSheet.Cells(0, 0, firstValueRow-1, lastValueCol).Style.Locked:=Tristate.OnOption;
+	
+	StyleTable(report, GV, tabSheet);
+	tabSheet.EndUpdate;
+
+End Sub RefreshTableCached;
+
+//TODO вынести в класс: работа с таблицей
+///<summary>очистка таблицы</summary>
+Public Sub ClearTable(table: String);	
+Begin
+	ExecuteSql("TRUNCATE "+table+";", "DB_ZZ_METADATA");	
+End Sub ClearTable;
+
+
+//данный метод добавляет в конец arraylist некоторое количество массивов строк. массивы строк являются записями из таблицы tName.
+//list = [...] -> list = [..., ["f1", "f2",..], ["f1", "f2",..],.. ]
+Public Sub AddToListFromTable(tName:String; Var list:  IArrayList);
+Var
+	error:Boolean;
+	MB: IMetabase;
+	DSInst: IDatasetInstance;
+	FieldsDefs: IDatasetModelFields;
+	FieldsDef: IDatasetModelField;
+	FieldsInst: IDatasetInstanceFields;
+	FieldInst: IDatasetInstanceField;
+	row: Array[6] Of String;
+	number: Integer;
+Begin
+	MB := MetabaseClass.Active;
+	DSInst := FindInRepo(tName, MB, error).Open(Null) As IDatasetInstance;
+	FieldsDefs := DSInst.FieldDefs;
+	While Not DSInst.Eof Do
+		If (IsNull(DSInst.Fields.FindById("ATTR_LOGIN").Value As String)) Or ((DSInst.Fields.FindById("ATTR_LOGIN").Value As String) = "") Then
+			DSInst.Next;
+			Continue
+		End If;
+		row[0]:=DSInst.Fields.FindById("ATTR_NAME").Value As String;
+		row[1]:=DSInst.Fields.FindById("ATTR_LOGIN").Value As String;
+		row[2]:=DSInst.Fields.FindById("ATTR_ROLE_NAME").Value As String;
+		row[3]:=DSInst.Fields.FindById("ATTR_TECHNICAL_NAME").Value As String;
+		row[4]:=DSInst.Fields.FindById("ATTR_CONTEXT").Value As String;
+		row[5]:=DSInst.Fields.FindById("ATTR_CONTEXT_VALUE").Value As String;
+		
+		list.Add(row);
+		DSInst.Next;
+	End While;
+	
+End Sub AddToListFromTable;
+
+//TODO вынести в класс: работа с таблицей
+///<summary>класс для того чтобы создать столбец контекста (не используется)</summary>
+Public Sub AddContextCol(report: IPrxReport);
+Var
+	i, firstValueRow, i2, i3, lastValueCol:Integer;
+	tabSheet: ITabSheet;
+	
+Begin
+	tabSheet := (report.ActiveSheet As IPrxTable).TabSheet;
+	FindFirstLastRow(tabSheet, firstValueRow, i2, i3, lastValueCol);
+	tabSheet.InsertColumns(lastValueCol+1, 2);
+	tabSheet.Cell(0, lastValueCol+1).Value:="#contextcol";
+	tabSheet.Cell(0, lastValueCol+2).Value:="#contextvalue";
+	
+	tabSheet.Cell(firstValueRow-1, lastValueCol+1).Text:=tabSheet.Cell(firstValueRow-1, lastValueCol-1).Text;
+	tabSheet.Cell(firstValueRow-1, lastValueCol+1).Style:=tabSheet.Cell(firstValueRow-1, lastValueCol-1).Style;
+	
+	tabSheet.Cell(firstValueRow-1, lastValueCol+2).Text:=tabSheet.Cell(firstValueRow-1, lastValueCol).Text;
+	tabSheet.Cell(firstValueRow-1, lastValueCol+2).Style:=tabSheet.Cell(firstValueRow-1, lastValueCol).Style;
+	
+End Sub AddContextCol;
