@@ -10,6 +10,10 @@
         "type": "git",
         "url": "https://github.com/ressiwage/fore-highlight"
     },
+    "bugs": {
+        "url": "https://github.com/AnsonYeung/vscode-pascal-language-basics/issues",
+        "email": "s151204@tanghin.edu.hk"
+    },
     "engines": {
         "vscode": "^1.30.0"
     },
@@ -22,7 +26,6 @@
                 "id": "fore",
                 "aliases": [
                     "Fore"
-            
                 ],
                 "extensions": [
                     ".text",
@@ -35,15 +38,15 @@
             {
                 "language": "fore",
                 "scopeName": "source.fore",
-                "path": "./syntaxes/pascal.tmLanguage.json"
+                "path": "./syntaxes/fore.tmLanguage.json"
             }
         ]
     },
     "scripts": {
-        "prepare": "js-yaml syntaxes/pascal.tmLanguage.yaml > syntaxes/pascal.tmLanguage.json",
-        "clean": "rm -f syntaxes/pascal.tmLanguage.json",
+        "prepare": "js-yaml syntaxes/fore.tmLanguage.yaml > syntaxes/fore.tmLanguage.json",
+        "clean": "rm -f syntaxes/fore.tmLanguage.json",
         "patch": "npm run prepare && vsce publish patch && npm run clean",
-        "build": "vsce package",
+        "i": "yarn prepare && vsce package",
         "test": "vscode-test"
     },
     "devDependencies": {

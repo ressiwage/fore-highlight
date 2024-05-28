@@ -1,6 +1,7 @@
 node_modules/
 vsc-extension-quickstart.md
 syntaxes/pascal.tmLanguage.json
+syntaxes/fore.tmLanguage.json
 *.pas
 *.vsix
 *.fore

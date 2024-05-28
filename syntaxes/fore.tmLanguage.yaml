@@ -24,6 +24,8 @@ patterns:
     -
         include: '#function-mod'
     -
+        include: '#asm'
+    -
         name: meta.program.end.pascal
         match: '(?i)\b(end)\s*\.'
         captures:
@@ -38,6 +40,10 @@ patterns:
 repository:
     comment:
         patterns:
+            -
+                name: comment.block.pascal
+                begin: '\(\*'
+                end: '\*\)'
             -
                 name: comment.block.pascal
                 begin: '\{'
@@ -138,6 +144,8 @@ repository:
             -
                 include: '#comment'
             -
+                include: '#asm'
+            -
                 name: keyword.control.pascal
                 match: '(?i)\b(finalization)\b'
             -
@@ -170,7 +178,7 @@ repository:
                 match: '(?i)([_a-z][0-9_a-z]*)'
     function-declaration:
         name: meta.function.pascal
-        begin: '(?i)\b(constructor|destructor|sub|function)\b'
+        begin: '(?i)\b(constructor|destructor|procedure|function)\b'
         beginCaptures:
             '1':
                 name: storage.type.pascal
@@ -208,6 +216,8 @@ repository:
             -
                 include: '#comment'
             -
+                include: '#asm'
+            -
                 include: '#statement'
     function-mod:
         begin: '(?i)\b(alias|assembler|cdecl|external|forward|inline|interrupt|pascal|popstack|public|register|saveregisters|safecall|stdcall)\b'
@@ -221,6 +231,21 @@ repository:
                 match: '(?i)\b(name)\b'
             -
                 include: '#expression'
+    asm:
+        contentName: meta.embedded.asm
+        begin: '(?i)(asm)'
+        beginCaptures:
+            '1':
+                name: keyword.control.pascal
+        end: '(?i)\b(end)\b([^;]*);'
+        endCaptures:
+            '1':
+                name: keyword.control.pascal
+            '2':
+                patterns:
+                    -
+                        include: '#strings'
+        patterns: []
     type-declaration:
         patterns:
             -
@@ -445,6 +470,8 @@ repository:
             -
                 include: '#comment'
             -
+                include: '#asm'
+            -
                 include: '#statement'
     identifier:
         patterns:
@@ -467,6 +494,7 @@ repository:
             -
                 name: keyword.control.pascal
                 match: '(?i)\b(break|continue|do|downto|else|for|goto|if|repeat|then|until|while|with)\b'
+                # formatted asm|begin|case|end
             -
                 name: constant.language.pascal
                 match: '(?i)\b(true|false)\b'
