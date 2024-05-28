@@ -3,3 +3,4 @@ vsc-extension-quickstart.md
 syntaxes/pascal.tmLanguage.json
 *.pas
 *.vsix
+*.fore

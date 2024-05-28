@@ -2,7 +2,7 @@
     "name": "fore-syntax-highlighting",
     "displayName": "fore syntax highlighting",
     "description": "Provides syntax highlighting in fore language",
-    "version": "0.1.10",
+    "version": "0.1.0",
     "publisher": "AnsonYeung",
     "license": "MIT",
     "icon": "images/Pascal.png",
@@ -21,8 +21,8 @@
             {
                 "id": "pascal",
                 "aliases": [
-                    "Fore",
                     "Fore"
+            
                 ],
                 "extensions": [
                     ".text",

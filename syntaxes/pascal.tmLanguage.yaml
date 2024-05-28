@@ -24,8 +24,6 @@ patterns:
     -
         include: '#function-mod'
     -
-        include: '#asm'
-    -
         name: meta.program.end.pascal
         match: '(?i)\b(end)\s*\.'
         captures:
@@ -140,8 +138,6 @@ repository:
             -
                 include: '#comment'
             -
-                include: '#asm'
-            -
                 name: keyword.control.pascal
                 match: '(?i)\b(finalization)\b'
             -
@@ -211,8 +207,6 @@ repository:
         patterns:
             -
                 include: '#comment'
-            -
-                include: '#asm'
             -
                 include: '#statement'
     function-mod:
@@ -451,8 +445,6 @@ repository:
             -
                 include: '#comment'
             -
-                include: '#asm'
-            -
                 include: '#statement'
     identifier:
         patterns:
@@ -475,7 +467,6 @@ repository:
             -
                 name: keyword.control.pascal
                 match: '(?i)\b(break|continue|do|downto|else|for|goto|if|repeat|then|until|while|with)\b'
-                # formatted asm|begin|case|end
             -
                 name: constant.language.pascal
                 match: '(?i)\b(true|false)\b'
