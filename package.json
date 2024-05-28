@@ -1,7 +1,7 @@
 {
-    "name": "pascal-language-basics",
-    "displayName": "Pascal Language Basics",
-    "description": "Provides syntax highlighting in pascal language",
+    "name": "fore-syntax-highlighting",
+    "displayName": "fore syntax highlighting",
+    "description": "Provides syntax highlighting in fore language",
     "version": "0.1.10",
     "publisher": "AnsonYeung",
     "license": "MIT",
@@ -39,19 +39,19 @@
             {
                 "language": "pascal",
                 "scopeName": "source.pascal",
-                "path": "./syntaxes/pascal.tmLanguage.json",
-                "embeddedLanguages": {
-                    "meta.embedded.asm": "source.asm"
-                }
+                "path": "./syntaxes/pascal.tmLanguage.json"
             }
         ]
     },
     "scripts": {
         "prepare": "js-yaml syntaxes/pascal.tmLanguage.yaml > syntaxes/pascal.tmLanguage.json",
         "clean": "rm -f syntaxes/pascal.tmLanguage.json",
-        "patch": "npm run prepare && vsce publish patch && npm run clean"
+        "patch": "npm run prepare && vsce publish patch && npm run clean",
+        "test": "vscode-test"
     },
     "devDependencies": {
+        "@vscode/test-cli": "^0.0.9",
+        "@vscode/test-electron": "^2.3.10",
         "js-yaml": "^3.13.1",
         "vsce": "^2.7.0"
     }
