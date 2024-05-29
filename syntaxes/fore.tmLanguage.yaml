@@ -37,6 +37,9 @@ patterns:
         include: '#declaration'
     -
         include: '#keywords'
+    -
+        include: '#my-class-declaration'
+    
 repository:
     comment:
         patterns:
@@ -219,6 +222,33 @@ repository:
                 include: '#asm'
             -
                 include: '#statement'
+
+    my-class-declaration:
+        name: meta.mybody.pascal
+        begin: '(?i)\b(class)\b\s*([_a-z][0-9_a-z]*)\s*:\s*([_a-z][0-9_a-z]*)'
+        beginCaptures:
+            '1':
+                name: keyword.control.pascal
+            '2':
+                name: keyword.control.pascal
+            '3':
+                name: keyword.control.pascal
+        end: '(?i)\b(end)\s*(class)\s*([_a-z][0-9_a-z]*)(?=;)'
+        endCaptures:
+            '1':
+                name: keyword.control.pascal
+            '2':
+                name: keyword.control.pascal
+            '3':
+                name: keyword.control.pascal
+        patterns:
+            -
+                include: '#comment'
+            -
+                include: '#asm'
+            -
+                include: '#statement'
+    
     function-mod:
         begin: '(?i)\b(alias|assembler|cdecl|external|forward|inline|interrupt|pascal|popstack|public|register|saveregisters|safecall|stdcall)\b'
         beginCaptures:
