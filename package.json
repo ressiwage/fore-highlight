@@ -46,7 +46,9 @@
         "prepare": "js-yaml syntaxes/fore.tmLanguage.yaml > syntaxes/fore.tmLanguage.json",
         "clean": "rm -f syntaxes/fore.tmLanguage.json",
         "patch": "npm run prepare && vsce publish patch && npm run clean",
-        "i": "yarn prepare && vsce package",
+        "i": "yarn prepare && vsce package && yarn unins && yarn ins",
+        "unins":"code --uninstall-extension ansonyeung.fore-syntax-highlighting --profile \"debug\"",
+        "ins":"code --install-extension fore-syntax-highlighting-0.1.0.vsix --profile \"debug\"",
         "test": "vscode-test"
     },
     "devDependencies": {
@@ -56,3 +58,4 @@
         "vsce": "^2.7.0"
     }
 }
+
