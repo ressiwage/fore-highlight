@@ -256,6 +256,8 @@ repository:
             #     include: '#statement'
             -
                 include: '#my-sub-declaration'
+            -
+                include: '#my-class-declaration'
     
     my-sub-declaration:
         name: keyword.control.pascal #meta.mysub.pascal
@@ -270,6 +272,8 @@ repository:
         patterns:
             -
                 include: "#my-function-variables"
+            -
+                include: "#my-function-body"
 
     my-function-variables:
         name: keyword.pascal
@@ -278,7 +282,20 @@ repository:
         patterns:
             -
                 include: "#my-sub-declaration"
-                    
+    my-function-body:
+        name: entity.name.type.pascal
+        begin: '(?i)^\s*\begin\b'
+        end: '(?i)^\s*\bend\s*sub\b'
+        patterns:
+            -
+                include: "#my-sub-declaration"
+    my-if:
+        name: keyword.pascal
+        begin: '(?i)^\s*\if\b'
+        end: '(?i)^\s*\bend\s*if\b'
+        patterns:
+            -
+                include: "#my-if"
     
     function-mod:
         begin: '(?i)\b(alias|assembler|cdecl|external|forward|inline|interrupt|pascal|popstack|public|register|saveregisters|safecall|stdcall)\b'
