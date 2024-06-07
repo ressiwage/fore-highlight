@@ -3,42 +3,48 @@ name: Fore
 patterns:
     -
         include: '#comment'
+    # -
+    #     include: '#implementation'
     -
-        include: '#program'
-    -
-        include: '#unit'
-    -
-        include: '#interface'
-    -
-        include: '#implementation'
-    -
-        include: '#unit-main'
-    -
-        include: '#uses'
-    -
-        include: '#label'
-    -
-        include: '#function-declaration'
-    -
-        include: '#function-body'
-    -
-        include: '#function-mod'
-    -
-        include: '#asm'
-    -
-        name: meta.program.end.pascal
-        match: '(?i)\b(end)\s*\.'
-        captures:
-            '1':
-                name: keyword.control.pascal
-    -
-        include: '#type-declaration'
-    -
-        include: '#declaration'
-    -
-        include: '#keywords'
+        include: '#my-sub-declaration'
+
     -
         include: '#my-class-declaration'
+    # -
+    #     include: '#program'
+    # -
+    #     include: '#unit'
+    # -
+    #     include: '#interface'
+    # -
+    #     include: '#implementation'
+    # -
+    #     include: '#unit-main'
+    # -
+    #     include: '#uses'
+    # -
+    #     include: '#label'
+    # -
+    #     include: '#function-declaration'
+    # -
+    #     include: '#function-body'
+    # -
+    #     include: '#function-mod'
+    # -
+    #     include: '#asm'
+    # -
+    #     name: meta.program.end.pascal
+    #     match: '(?i)\b(end)\s*\.'
+    #     captures:
+    #         '1':
+    #             name: keyword.control.pascal
+    # -
+    #     include: '#type-declaration'
+    # -
+    #     include: '#declaration'
+    # -
+    #     include: '#keywords'
+
     
 repository:
     comment:
@@ -244,10 +250,35 @@ repository:
         patterns:
             -
                 include: '#comment'
+            # -
+            #     include: '#asm'
+            # -
+            #     include: '#statement'
             -
-                include: '#asm'
+                include: '#my-sub-declaration'
+    
+    my-sub-declaration:
+        name: keyword.control.pascal #meta.mysub.pascal
+        # match: '(?i)sub\X*?^\s*?var(\X*?)^\s*?begin\X*?end\s*sub'
+        # captures:
+        #     '1':
+        #         patterns:
+        #             -
+        #                 include: '#my-sub-declaration'
+        begin: '(?i)\bsub\b'
+        end: '(?i)\bend\b\s*\bsub\b'
+        patterns:
             -
-                include: '#statement'
+                include: "#my-function-variables"
+
+    my-function-variables:
+        name: keyword.pascal
+        begin: '(?i)^\s*\bvar\b'
+        end: '(?i)^\s*\bbegin\b'
+        patterns:
+            -
+                include: "#my-sub-declaration"
+                    
     
     function-mod:
         begin: '(?i)\b(alias|assembler|cdecl|external|forward|inline|interrupt|pascal|popstack|public|register|saveregisters|safecall|stdcall)\b'
