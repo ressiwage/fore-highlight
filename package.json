@@ -47,8 +47,9 @@
         "clean": "rm -f syntaxes/fore.tmLanguage.json",
         "patch": "npm run prepare && vsce publish patch && npm run clean",
         "i": "yarn prepare && vsce package && yarn unins && yarn ins",
-        "unins":"code --uninstall-extension ansonyeung.fore-syntax-highlighting --profile \"debug\"",
-        "ins":"code --install-extension fore-syntax-highlighting-0.1.0.vsix --profile \"debug\"",
+        "__comment":"для того, чтобы устанавливать и удалять расширение в определённый vc-профиль, добавьте в unins и ins --profile \"ваш профиль\"",
+        "unins":"code --uninstall-extension ansonyeung.fore-syntax-highlighting",
+        "ins":"code --install-extension fore-syntax-highlighting-0.1.0.vsix",
         "test": "vscode-test"
     },
     "devDependencies": {
